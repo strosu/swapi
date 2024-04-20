@@ -10,26 +10,26 @@ namespace Swapi.Services
         /// </summary>
         /// <param name="resource"></param>
         /// <returns></returns>
-        public Task<T> RetrieveObject<T>(string resource);
+        public Task<T> RetrieveObjectAsync<T>(string resource);
 
         /// <summary>
         /// Retrieves multiple pages of results and aggregates the results
         /// </summary>
         /// <param name="resources"></param>
         /// <returns></returns>
-        public Task<IEnumerable<T>> RetrieveObjects<T>(IEnumerable<string> resources);
+        public Task<IEnumerable<T>> RetrieveObjectPagesAsync<T>(IEnumerable<string> pageUrls);
     }
 
     public class MetadataRetriever(IRequestService requestService) : IMetadataRetriever
     {
         private readonly IRequestService _requestService = requestService;
 
-        public async Task<T> RetrieveObject<T>(string resource)
+        public async Task<T> RetrieveObjectAsync<T>(string resource)
         {
             return await _requestService.GetAsync<T>(resource);
         }
 
-        public async Task<IEnumerable<T>> RetrieveObjects<T>(IEnumerable<string> pageUrls)
+        public async Task<IEnumerable<T>> RetrieveObjectPagesAsync<T>(IEnumerable<string> pageUrls)
         {
             var results = new HashSet<T>();
 

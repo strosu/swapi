@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace Swapi.Services.Http
+﻿namespace Swapi.Services.Http
 {
     public interface IRetryService
     {

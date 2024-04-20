@@ -7,9 +7,9 @@ namespace Swapi.Controllers
     [ApiController]
     public class PlanetsController : ControllerBase
     {
-        private readonly IMetadataFinder _metadataFinder;
+        private readonly IMetadataAggregator _metadataFinder;
 
-        public PlanetsController(IMetadataFinder metadataFinder)
+        public PlanetsController(IMetadataAggregator metadataFinder)
         {
             _metadataFinder = metadataFinder;
         }
@@ -17,13 +17,13 @@ namespace Swapi.Controllers
         [HttpGet("planets/{planetId}")]
         public async Task<Planet> GetPlanet(int planetId)
         {
-            return await _metadataFinder.GetSingleMetadata<Planet>(planetId);
+            return await _metadataFinder.GetSingleMetadataAsync<Planet>(planetId);
         }
 
         [HttpGet("planets")]
-        public async Task<IList<Planet>> GetPlanets()
+        public async Task<IEnumerable<Planet>> GetPlanets()
         {
-            return [];
+            return await _metadataFinder.GetMetadataSetAsync<Planet>();
         }
     }
 }
