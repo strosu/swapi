@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Swapi.Models.DTO;
 using Swapi.Models.Repository;
 using Swapi.Services;
@@ -16,12 +17,14 @@ namespace Swapi.Controllers
         }
 
         [HttpGet("planets/{planetId}")]
+        [EnableRateLimiting("singleRequest")]
         public async Task<Planet> GetPlanet(int planetId)
         {
             return await _metadataFinder.GetSingleMetadataAsync<SwapiPlanet>(planetId);
         }
 
         [HttpGet("planets")]
+        [EnableRateLimiting("singleRequest")]
         public async Task<IEnumerable<Planet>> GetPlanets()
         {
             var swapiPlanets = await _metadataFinder.GetMetadataSetAsync<SwapiPlanet>();

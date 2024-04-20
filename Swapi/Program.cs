@@ -1,4 +1,5 @@
-
+using StackExchange.Redis;
+using Swapi.Middleware;
 using Swapi.Services;
 using Swapi.Services.Http;
 
@@ -10,7 +11,21 @@ namespace Swapi
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            var redisConnection = ConfigurationOptions.Parse(builder.Configuration.GetConnectionString("redis"));
+            var multiplexer = ConnectionMultiplexer.Connect(redisConnection);
+
+            builder.Services.AddRateLimiter(options =>
+            {
+            //    options.AddRedisSlidingWindowLimiter("aggregateRequest", opt =>
+            //    {
+            //        opt.ConnectionMultiplexerFactory = () => multiplexer;
+            //        opt.PermitLimit = 1;
+            //        opt.Window = TimeSpan.FromSeconds(30);
+            //    });
+
+                options.AddPolicy<string, ClientIdRateLimiterPolicy>("singleRequest");
+            });
+
 
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -27,9 +42,11 @@ namespace Swapi
             builder.Services.AddScoped<IMetadataRetriever, MetadataRetriever>();
             builder.Services.AddScoped<IMetadataAggregator, MetadataAggregator>();
             builder.Services.AddScoped<IMetadataRetrieverFactory, MetadataRetrieverFactory>();
+            builder.Services.AddSingleton<IConnectionMultiplexer>(x => multiplexer);
 
             var app = builder.Build();
 
+            app.UseRateLimiter();
             app.UseSwagger();
             app.UseSwaggerUI();
 
