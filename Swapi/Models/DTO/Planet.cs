@@ -1,5 +1,4 @@
 ﻿using Swapi.Models.Repository;
-using System;
 
 namespace Swapi.Models.DTO
 {
@@ -86,6 +85,7 @@ namespace Swapi.Models.DTO
                 OrbitalPeriod = swapiPlanet.OrbitalPeriod,
                 GravityMultiplier = swapiPlanet.GravityMultiplier,
                 PopulationCountAverage = swapiPlanet.PopulationCountAverage,
+                WaterPercentage = swapiPlanet.WaterPercentage,
                 Climates = swapiPlanet.Climates.SplitCommaSeparated(),
                 Terrains = swapiPlanet.Terrains.SplitCommaSeparated(),
                 ResidentIds = swapiPlanet.ResidentUrls.Select(UrlUtils.ConvertToId),

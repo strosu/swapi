@@ -72,7 +72,7 @@ namespace Swapi.Services
         {
             var url = MetadataConfiguration.GetEntityPage<T>(1);
             var firstPage = await _metadataRetrieverFactory
-                .CreateMetadataRetriever().RetrieveObjectAsync<ResourceList<T>>(url);
+                .CreateMetadataRetriever().RetrieveObjectAsync<ResourcePage<T>>(url);
             var totalResourceCount = firstPage.Count;
 
             return Utils.RoundUpDivision(totalResourceCount, ResultsPerPage);

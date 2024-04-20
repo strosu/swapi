@@ -35,7 +35,7 @@ namespace Swapi.Services
 
             foreach (var url in pageUrls)
             {
-                var pageResults = await _requestService.GetAsync<ResourceList<T>>(url);
+                var pageResults = await _requestService.GetAsync<ResourcePage<T>>(url);
                 foreach (var listing in pageResults.Results)
                 {
                     results.Add(listing);

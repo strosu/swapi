@@ -6,7 +6,7 @@
             => (numerator + denumerator - 1) / denumerator;
 
         public static List<string> SplitCommaSeparated(this string input)
-            => input.Split(',').ToList();
+            => input.Split(',').Select(x => x.Trim()).ToList();
     }
 
     public class UrlUtils

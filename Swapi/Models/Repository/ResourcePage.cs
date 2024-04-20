@@ -2,16 +2,14 @@
 
 namespace Swapi.Models.Repository
 {
-    public class ResourceList<T>
+    /// <summary>
+    /// Represents a page of resources
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class ResourcePage<T>
     {
         [JsonPropertyName("count")]
         public int Count { get; set; }
-
-        [JsonPropertyName("next")]
-        public string? NextPageUrl { get; set; }
-
-        [JsonPropertyName("previous")]
-        public string? PreviousPageUrl { get; set; }
 
         [JsonPropertyName("results")]
         public List<T> Results { get; set; }
