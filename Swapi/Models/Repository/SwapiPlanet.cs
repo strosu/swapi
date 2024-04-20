@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Swapi.Models
+namespace Swapi.Models.Repository
 {
-    public class Planet
+    public class SwapiPlanet
     {
         /// <summary>
         /// the hypermedia URL of this resource
@@ -38,7 +38,7 @@ namespace Swapi.Models
         /// A number denoting the gravity of this planet, where "1" is normal or 1 standard G. "2" is twice or 2 standard Gs. "0.5" is half or 0.5 standard Gs.
         /// </summary>
         [JsonPropertyName("gravity")]
-        public string GravityMultiplier {  get; set; }
+        public string GravityMultiplier { get; set; }
 
         /// <summary>
         /// The average population of sentient beings inhabiting this planet.

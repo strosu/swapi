@@ -1,5 +1,5 @@
 ﻿using Swapi.Models;
-using System.Reflection;
+using Swapi.Models.Repository;
 
 namespace Swapi.Services
 {
@@ -25,7 +25,7 @@ namespace Swapi.Services
             foreach (var urlList in pageDistribution)
             {
                 var retriever = _metadataRetrieverFactory.CreateMetadataRetriever();
-                taskList.Add(retriever.RetrieveObjectPagesAsync<T>(urlList));
+                taskList.Add(retriever.SequentiallyRetrieveObjectPagesAsync<T>(urlList));
             }
 
             await Task.WhenAll(taskList);
@@ -36,7 +36,7 @@ namespace Swapi.Services
 
         public async Task<T> GetSingleMetadataAsync<T>(int objectId)
         {
-            var url = MetadataConfiguration.GetEntityPage<T>(objectId);
+            var url = MetadataConfiguration.GetEntityUrl<T>(objectId);
 
             return await _metadataRetrieverFactory.CreateMetadataRetriever()
                 .RetrieveObjectAsync<T>(url);
@@ -70,7 +70,7 @@ namespace Swapi.Services
 
         private async Task<int> GetNumberOfPages<T>()
         {
-            var url = MetadataConfiguration.GetAllUrl<T>();
+            var url = MetadataConfiguration.GetEntityPage<T>(1);
             var firstPage = await _metadataRetrieverFactory
                 .CreateMetadataRetriever().RetrieveObjectAsync<ResourceList<T>>(url);
             var totalResourceCount = firstPage.Count;

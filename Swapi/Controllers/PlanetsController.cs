@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Swapi.Models;
+using Swapi.Models.DTO;
+using Swapi.Models.Repository;
 using Swapi.Services;
 
 namespace Swapi.Controllers
@@ -17,13 +18,14 @@ namespace Swapi.Controllers
         [HttpGet("planets/{planetId}")]
         public async Task<Planet> GetPlanet(int planetId)
         {
-            return await _metadataFinder.GetSingleMetadataAsync<Planet>(planetId);
+            return await _metadataFinder.GetSingleMetadataAsync<SwapiPlanet>(planetId);
         }
 
         [HttpGet("planets")]
         public async Task<IEnumerable<Planet>> GetPlanets()
         {
-            return await _metadataFinder.GetMetadataSetAsync<Planet>();
+            var swapiPlanets = await _metadataFinder.GetMetadataSetAsync<SwapiPlanet>();
+            return swapiPlanets.Select(x => (Planet)x);
         }
     }
 }

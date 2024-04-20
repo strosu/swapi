@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Swapi.Models
+namespace Swapi.Models.Repository
 {
     public class ResourceList<T>
     {
@@ -11,7 +11,7 @@ namespace Swapi.Models
         public string? NextPageUrl { get; set; }
 
         [JsonPropertyName("previous")]
-        public string? PreviousPageUrl {  get; set; }
+        public string? PreviousPageUrl { get; set; }
 
         [JsonPropertyName("results")]
         public List<T> Results { get; set; }

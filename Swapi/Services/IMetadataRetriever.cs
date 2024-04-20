@@ -1,4 +1,4 @@
-﻿using Swapi.Models;
+﻿using Swapi.Models.Repository;
 using Swapi.Services.Http;
 
 namespace Swapi.Services
@@ -13,11 +13,11 @@ namespace Swapi.Services
         public Task<T> RetrieveObjectAsync<T>(string resource);
 
         /// <summary>
-        /// Retrieves multiple pages of results and aggregates the results
+        /// Retrieves multiple pages of results and aggregates the results; The retrieval in done sequentially
         /// </summary>
         /// <param name="resources"></param>
         /// <returns></returns>
-        public Task<IEnumerable<T>> RetrieveObjectPagesAsync<T>(IEnumerable<string> pageUrls);
+        public Task<IEnumerable<T>> SequentiallyRetrieveObjectPagesAsync<T>(IEnumerable<string> pageUrls);
     }
 
     public class MetadataRetriever(IRequestService requestService) : IMetadataRetriever
@@ -29,7 +29,7 @@ namespace Swapi.Services
             return await _requestService.GetAsync<T>(resource);
         }
 
-        public async Task<IEnumerable<T>> RetrieveObjectPagesAsync<T>(IEnumerable<string> pageUrls)
+        public async Task<IEnumerable<T>> SequentiallyRetrieveObjectPagesAsync<T>(IEnumerable<string> pageUrls)
         {
             var results = new HashSet<T>();
 
