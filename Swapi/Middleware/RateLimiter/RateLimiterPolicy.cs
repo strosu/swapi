@@ -5,7 +5,7 @@ using System.Threading.RateLimiting;
 
 namespace Swapi.Middleware.RateLimiter
 {
-    public class ClientIdRateLimiterPolicy(
+    public class RateLimiterPolicy(
         IConnectionMultiplexer connectionMultiplexer,
         IPartitionStrategy partitionStrategy) : IRateLimiterPolicy<string>
     {

@@ -29,7 +29,7 @@ namespace Swapi
                     opt.Window = TimeSpan.FromSeconds(30);
                 });
 
-                options.AddPolicy<string, ClientIdRateLimiterPolicy>("singleRequest");
+                options.AddPolicy<string, RateLimiterPolicy>("singleRequest");
             });
 
             // TODO - remove this
