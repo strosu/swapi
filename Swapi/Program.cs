@@ -1,7 +1,10 @@
+using RedisRateLimiting.AspNetCore;
 using StackExchange.Redis;
 using Swapi.Middleware;
 using Swapi.Services;
+using Swapi.Services.Caching;
 using Swapi.Services.Http;
+using Swapi.Services.HttpAggregator;
 
 namespace Swapi
 {
@@ -16,12 +19,12 @@ namespace Swapi
 
             builder.Services.AddRateLimiter(options =>
             {
-            //    options.AddRedisSlidingWindowLimiter("aggregateRequest", opt =>
-            //    {
-            //        opt.ConnectionMultiplexerFactory = () => multiplexer;
-            //        opt.PermitLimit = 1;
-            //        opt.Window = TimeSpan.FromSeconds(30);
-            //    });
+                options.AddRedisSlidingWindowLimiter("aggregateRequest", opt =>
+                {
+                    opt.ConnectionMultiplexerFactory = () => multiplexer;
+                    opt.PermitLimit = 1;
+                    opt.Window = TimeSpan.FromSeconds(30);
+                });
 
                 options.AddPolicy<string, ClientIdRateLimiterPolicy>("singleRequest");
             });
@@ -40,9 +43,18 @@ namespace Swapi
             builder.Services.AddScoped<IRetryService, ExponentialBackoffRetryService>();
             builder.Services.AddScoped<IRequestService, RequestService>();
             builder.Services.AddScoped<IMetadataRetriever, MetadataRetriever>();
-            builder.Services.AddScoped<IMetadataAggregator, MetadataAggregator>();
             builder.Services.AddScoped<IMetadataRetrieverFactory, MetadataRetrieverFactory>();
             builder.Services.AddSingleton<IConnectionMultiplexer>(x => multiplexer);
+
+            builder.Services.AddScoped<MetadataAggregator>();
+            builder.Services.AddScoped<IMetadataAggregator>(provider =>
+            {
+                var networkAggregator = provider.GetService<MetadataAggregator>();
+                var logger = provider.GetService<ILogger<CachedMetadataAggregator>>();
+                var multiplexer = provider.GetService<IConnectionMultiplexer>();
+                return new CachedMetadataAggregator(networkAggregator, multiplexer, logger);
+            });
+
 
             var app = builder.Build();
 

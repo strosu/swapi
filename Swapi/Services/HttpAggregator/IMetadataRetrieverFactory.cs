@@ -1,4 +1,4 @@
-﻿namespace Swapi.Services
+﻿namespace Swapi.Services.HttpAggregator
 {
     public interface IMetadataRetrieverFactory
     {
