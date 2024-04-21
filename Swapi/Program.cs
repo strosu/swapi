@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using RedisRateLimiting.AspNetCore;
 using StackExchange.Redis;
 using Swapi.Middleware.RateLimiter;
@@ -19,16 +20,21 @@ namespace Swapi
 
             builder.Services.AddRateLimiter(options =>
             {
+                // Set a policy that applies to the entire set of users
+                // That is, in span of 30 seconds, we don't accept more than 20 connections in total
                 options.AddRedisSlidingWindowLimiter("aggregateRequest", opt =>
                 {
                     opt.ConnectionMultiplexerFactory = () => multiplexer;
-                    opt.PermitLimit = 1;
+                    opt.PermitLimit = 20;
                     opt.Window = TimeSpan.FromSeconds(30);
                 });
 
                 options.AddPolicy<string, ClientIdRateLimiterPolicy>("singleRequest");
             });
 
+            // TODO - remove this
+            // Temporarily here to unblock myself. This should never be used in a production system
+            DisableSSL(builder);
 
             builder.Services.AddControllers(options =>
             {
@@ -50,6 +56,26 @@ namespace Swapi
             app.MapControllers();
 
             app.Run();
+        }
+
+        /// <summary>
+        /// Needing this since the SSL cert for Swapi expired
+        /// </summary>
+        /// <param name="builder"></param>
+        private static void DisableSSL(WebApplicationBuilder builder)
+        {
+            builder.Services.AddHttpClient(Options.DefaultName, c =>
+            {
+                // ...
+            }).ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                return new HttpClientHandler
+                {
+                    ClientCertificateOptions = ClientCertificateOption.Manual,
+                    ServerCertificateCustomValidationCallback =
+                        (httpRequestMessage, cert, certChain, policyErrors) => true
+                };
+            });
         }
 
         private static void RegisterServices(WebApplicationBuilder builder, ConnectionMultiplexer multiplexer)

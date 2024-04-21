@@ -23,6 +23,7 @@ namespace Swapi.Services.Http
         private readonly IRetryService _retryService = retryService;
         private readonly ILogger<RequestService> _logger = logger;
 
+
         public async Task<T> GetAsync<T>(string url)
         {
             _logger.LogInformation($"Retrieving ${url}");
@@ -50,6 +51,7 @@ namespace Swapi.Services.Http
                 {
                     // This is meant to catch unhandled exceptions, e.g. server throwing a 500 for whatever reason; In that case, don't just give up
                     _logger.LogError(ex.Message);
+                    _logger.LogError(ex.InnerException.Message);
                 }
 
                 await _retryService.Wait(result);
