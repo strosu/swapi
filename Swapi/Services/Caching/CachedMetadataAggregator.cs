@@ -14,14 +14,21 @@ namespace Swapi.Services.Caching
 
         private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(10);
 
-        public Task<IEnumerable<T>> GetMetadataSetAsync<T>()
+        public async Task<IEnumerable<T>> GetMetadataSetAsync<T>()
         {
-            throw new NotImplementedException();
+            var key = GetRedisKey<T>();
+            return await GetInternal(key, _httpMetadataAggregator.GetMetadataSetAsync<T>);
         }
 
         public async Task<T> GetSingleMetadataAsync<T>(int objectId)
         {
-            var result = await _database.StringGetAsync(GetRedisKey<T>(objectId));
+            var key = GetRedisKey<T>(objectId);
+            return await GetInternal<T>(key, () => _httpMetadataAggregator.GetSingleMetadataAsync<T>(objectId));
+        }
+
+        private async Task<T> GetInternal<T>(string key, Func<Task<T>> getDirectlyFunc)
+        {
+            var result = await _database.StringGetAsync(key);
 
             if (result != RedisValue.Null)
             {
@@ -29,14 +36,14 @@ namespace Swapi.Services.Caching
                 return JsonSerializer.Deserialize<T>(result.ToString());
             }
 
-            var remoteResult = await _httpMetadataAggregator.GetSingleMetadataAsync<T>(objectId);
+            // If we couldn't find it in the cache, go retrieve it
+            var remoteResult = await getDirectlyFunc();
             _logger.LogInformation("Persisting to redis");
-            await _database.StringSetAsync(GetRedisKey<T>(objectId), JsonSerializer.Serialize(remoteResult), CacheDuration);
-
+            await _database.StringSetAsync(key, JsonSerializer.Serialize(remoteResult), CacheDuration);
             return remoteResult;
         }
 
-        private string GetRedisKey<T>(int? id = null)
+        private static string GetRedisKey<T>(int? id = null)
         {
             if (id == null)
             {

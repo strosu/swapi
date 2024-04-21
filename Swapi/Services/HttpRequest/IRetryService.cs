@@ -1,8 +1,10 @@
-﻿namespace Swapi.Services.Http
+﻿using Swapi.Services.HttpRequest;
+
+namespace Swapi.Services.Http
 {
     public interface IRetryService
     {
-        Task Wait();
+        Task Wait(HttpResponseMessage? result);
 
         void Reset();
 
@@ -12,6 +14,8 @@
     /// <summary>
     /// Service used as a strategy for waiting between failed requests
     /// Implements an exponential backoff; this works well when there's an outage, might not be the best for when throttled
+    /// In addition to the 10k requests / day a single instance can send the backplane, the server seems to also throttled for a shorter time window(e.g. 15 mins)
+    /// See https://github.com/semperry/swapi/blob/master/server/middleware/limiters.js for details
     /// </summary>
     public class ExponentialBackoffRetryService(ILogger<RequestService> logger) : IRetryService
     {
@@ -44,11 +48,16 @@
             return _retryCount <= MaxRetryCount;
         }
 
-        public async Task Wait()
+        public async Task Wait(HttpResponseMessage? result)
         {
             if (_retryCount > MaxRetryCount)
             {
                 throw new TimeoutException("Too many retries, giving up. Better luck next time.");
+            }
+
+            if (result?.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                throw new ProxyRateLimitedException("Too many requests. Please try again later.");
             }
 
             _retryCount++;

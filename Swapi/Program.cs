@@ -30,31 +30,15 @@ namespace Swapi
             });
 
 
-            builder.Services.AddControllers()
+            builder.Services.AddControllers(options =>
+            {
+                options.Filters.Add<SwapiExceptionFilter>();
+            })
                 .AddJsonOptions(options =>
                     options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
             builder.Logging.AddConsole();
-
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-            builder.Services.AddHttpClient();
-
-            builder.Services.AddScoped<IRetryService, ExponentialBackoffRetryService>();
-            builder.Services.AddScoped<IRequestService, RequestService>();
-            builder.Services.AddScoped<IMetadataRetriever, MetadataRetriever>();
-            builder.Services.AddScoped<IMetadataRetrieverFactory, MetadataRetrieverFactory>();
-            builder.Services.AddSingleton<IConnectionMultiplexer>(x => multiplexer);
-
-            builder.Services.AddScoped<MetadataAggregator>();
-            builder.Services.AddScoped<IMetadataAggregator>(provider =>
-            {
-                var networkAggregator = provider.GetService<MetadataAggregator>();
-                var logger = provider.GetService<ILogger<CachedMetadataAggregator>>();
-                var multiplexer = provider.GetService<IConnectionMultiplexer>();
-                return new CachedMetadataAggregator(networkAggregator, multiplexer, logger);
-            });
-
+            RegisterServices(builder, multiplexer);
 
             var app = builder.Build();
 
@@ -66,6 +50,45 @@ namespace Swapi
             app.MapControllers();
 
             app.Run();
+        }
+
+        private static void RegisterServices(WebApplicationBuilder builder, ConnectionMultiplexer multiplexer)
+        {
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+            builder.Services.AddHttpClient();
+
+            builder.Services.AddScoped<IRetryService, ExponentialBackoffRetryService>();
+            builder.Services.AddScoped<IRequestService, RequestService>();
+            builder.Services.AddScoped<IMetadataRetriever, MetadataRetriever>();
+            builder.Services.AddScoped<IMetadataRetrieverFactory, MetadataRetrieverFactory>();
+            builder.Services.AddSingleton<IConnectionMultiplexer>(x => multiplexer);
+
+            RegisterAggregator(builder);
+        }
+
+        private static void RegisterAggregator(WebApplicationBuilder builder)
+        {
+            if (builder.Configuration.GetValue<bool>(Constants.CachingEnabledConfig))
+            {
+                // If caching is enabled, we're registering a CachedMetadataAggregator as the implementation for IMetadataAggregator,
+                // which just wraps the MetadataAggregator
+                // It will use the MetadataAggregator to send out the actual requests when it can't find them in the cache
+                builder.Services.AddScoped<MetadataAggregator>();
+                builder.Services.AddScoped<IMetadataAggregator>(provider =>
+                {
+                    var networkAggregator = provider.GetService<MetadataAggregator>();
+                    var logger = provider.GetService<ILogger<CachedMetadataAggregator>>();
+                    var multiplexer = provider.GetService<IConnectionMultiplexer>();
+                    return new CachedMetadataAggregator(networkAggregator, multiplexer, logger);
+                });
+            }
+            else
+            {
+                // Otherwise, just register a regular MetadataAggregator as the default implementation for IMetadataAggregator
+                builder.Services.AddScoped<IMetadataAggregator, MetadataAggregator>();
+            }
+
         }
     }
 }
