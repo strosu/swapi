@@ -51,7 +51,7 @@ namespace Swapi.Services.Http
                 {
                     // This is meant to catch unhandled exceptions, e.g. server throwing a 500 for whatever reason; In that case, don't just give up
                     _logger.LogError(ex.Message);
-                    _logger.LogError(ex.InnerException.Message);
+                    _logger.LogError(ex.InnerException?.Message);
                 }
 
                 await _retryService.Wait(result);
