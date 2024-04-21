@@ -3,7 +3,7 @@
 TODO
 
 - unit tests
-- caching + decorator
+- caching + decorator - DONE, with conditional registration
 - multiple strategies for partitioning the requests
 - docker bundling with redis
 - proper readme
