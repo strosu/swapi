@@ -2,7 +2,7 @@
 using RedisRateLimiting;
 using RedisRateLimiting.AspNetCore;
 
-namespace Swapi.Middleware
+namespace Swapi.Middleware.RateLimiter
 {
     internal static class RateLimitHeaderHelper
     {

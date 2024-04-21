@@ -1,6 +1,6 @@
 using RedisRateLimiting.AspNetCore;
 using StackExchange.Redis;
-using Swapi.Middleware;
+using Swapi.Middleware.RateLimiter;
 using Swapi.Services;
 using Swapi.Services.Caching;
 using Swapi.Services.Http;
@@ -54,6 +54,7 @@ namespace Swapi
 
         private static void RegisterServices(WebApplicationBuilder builder, ConnectionMultiplexer multiplexer)
         {
+            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddHttpClient();
@@ -63,6 +64,8 @@ namespace Swapi
             builder.Services.AddScoped<IMetadataRetriever, MetadataRetriever>();
             builder.Services.AddScoped<IMetadataRetrieverFactory, MetadataRetrieverFactory>();
             builder.Services.AddSingleton<IConnectionMultiplexer>(x => multiplexer);
+
+            builder.Services.AddSingleton<IPartitionStrategy, IPPartitionStrategy>();
 
             RegisterAggregator(builder);
         }

@@ -1,5 +1,4 @@
-﻿using Swapi.Services.HttpRequest;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace Swapi.Services.Http
 {
@@ -26,8 +25,6 @@ namespace Swapi.Services.Http
 
         public async Task<T> GetAsync<T>(string url)
         {
-            throw new ProxyRateLimitedException("bla");
-
             _logger.LogInformation($"Retrieving ${url}");
             _retryService.Reset();
 
