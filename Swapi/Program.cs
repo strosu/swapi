@@ -20,15 +20,6 @@ namespace Swapi
 
             builder.Services.AddRateLimiter(options =>
             {
-                // Set a policy that applies to the entire set of users
-                // That is, in span of 30 seconds, we don't accept more than 20 connections in total
-                options.AddRedisSlidingWindowLimiter("aggregateRequest", opt =>
-                {
-                    opt.ConnectionMultiplexerFactory = () => multiplexer;
-                    opt.PermitLimit = 20;
-                    opt.Window = TimeSpan.FromSeconds(30);
-                });
-
                 options.AddPolicy<string, RateLimiterPolicy>("singleRequest");
             });
 
@@ -92,6 +83,7 @@ namespace Swapi
             builder.Services.AddSingleton<IConnectionMultiplexer>(x => multiplexer);
 
             builder.Services.AddSingleton<IPartitionStrategy, IPPartitionStrategy>();
+            builder.Services.AddSingleton<IPartitionGetter, SlidingWindowPartitionGetter>();
 
             RegisterAggregator(builder);
         }

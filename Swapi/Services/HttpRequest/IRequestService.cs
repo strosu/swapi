@@ -29,7 +29,7 @@ namespace Swapi.Services.Http
             _logger.LogInformation($"Retrieving ${url}");
             _retryService.Reset();
 
-            var httpClient = _httpClientFactory.CreateClient();
+            using var httpClient = _httpClientFactory.CreateClient();
             HttpResponseMessage? result = null;
 
             while (_retryService.CanRetryFurther())

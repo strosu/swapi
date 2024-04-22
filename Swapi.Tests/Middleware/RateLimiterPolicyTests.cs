@@ -13,7 +13,7 @@ namespace Swapi.Tests.Middleware
 
         public RateLimiterPolicyTests()
         {
-            _policy = new RateLimiterPolicy(_multiplexerMock.Object, _partitionStrategy.Object);
+            _policy = new RateLimiterPolicy(_multiplexerMock.Object, _partitionStrategy.Object, new SlidingWindowPartitionGetter());
         }
 
         [Fact] 
