@@ -31,6 +31,10 @@ Relevant aspects:
 - Alternatively, we can use a distributed rate limiter approach. This is the chosen solution, as it enables our instances to be completely stateles. However, this adds a dependency to a redis deployment (which might, of course, fail). 
 - Using a hosted redis (e.g. on Azure or AWS) should partially mitigate this due to their good uptimes. Nonetheless, when redis is down, so will our service. Alternatively, we could chose to allow all requests to go through if we cannot reach redis, but this might result in us exhausing our quota on the backend plane. The proper solution is to monitor how the system behaves and react accordingly. 
 
+- the implementation should easily allow for adding more models, without the need to open up existing classes
+
+- the data in the backplane shouldn't change to ofter, so we can rely on the initial call to get the total number of a type of resources to be accurate throughout the execution time. An example: if the first page says there's 50 planets on the first query, we assume that is 5 pages. If the data would change frequently, that might be out of date when we retrieve the results, and a 6th page might appear.
+
 ### Structure
 ---
 
@@ -78,14 +82,66 @@ For a single query, there are no options for parallelization. When getting an ag
 - while this might not offer the most benefit today, it would in an actual project, where we might have significantly more pages and more frequently changing data.
 
 
+### Abstractions
 
-TODO
+The code should expose these naturally, but adding here for ease of understanding:
 
-- unit tests - DONE
-- caching + decorator - DONE, with conditional registration
-- multiple strategies for partitioning the requests - DONE
-- docker bundling with redis - docker-compose done
+- PlanetsController.cs
+    - exposes the API endpoints and applies the RateLimitig policies to them
+    - forwards the requests to an IMetadataAggregator implementation
 
-- proper readme
-- code cleanup
-- send email with repo url - dimineata
+- IMetadataAggregator
+    - abstracts the two operations we support: getting a single resource by its Id, or getting the entire list of a type of resource
+    - the operations are not model specific, so they can be easily extended with more types
+    - offers two implementations, based on the `CachingEnabled` setting: `CachedMetadataAggregator` or `MetadataAggregator`
+
+- CachedMetadataAggregator
+    - is a type that decorates an instance of `MetadataAggregator` if caching is enabled. 
+    - if the requested value is found in the cache just returns it
+    - otherwise, proxies the result to the inner `MetadataAggregator`, gets the result and caches, then returns it
+
+- MetadataAggregator
+    - determines the total number of pages to be queried
+    - creates a variable number of retrievers, up to a configured limit
+    - distributes the pages URLs evenly between the retrievers
+
+- IMetadataRetriever
+    - takes a list of urls to parse, and retrieves them sequentially
+    - returns a unique list of results for further aggregation
+    - delegates the actual http request to and instance of `IRequestService`
+
+IRequestService
+    - knows how to retrieve a URL and deserialize it into the requested model
+    - delegates the retry policy to an instance of `IRetryService`
+
+IRetryService
+    - handles everything related to retries. The current implementation does them in an exponential backoff manner, but other strategies can be easily implemented.
+
+### Middleware
+
+#### Rate limiting
+---
+
+- The chosen library for rate limiting is RedisRateLimiting - https://github.com/cristipufu/aspnetcore-redis-rate-limiting
+- It exposes useful abstractions for the rate limiting algorithms; uses Lua scripts for guaranteeing atomicity.
+
+The current implementation:
+- SingleRequestRateLimiterPolicy and AggregateRequestRateLimiterPolicy expose different rate limiting policies as `IRateLimiterPolicy` implementations
+- The partitioning algorithm is delegated to `IPartitionStrategy`
+- each policy choses a different configuration for a SlidingWindowLimiter. The algorithm can be freely chosen here.
+- each `IRateLimiterPolicy` policy is registed with a name and applied by the controller at the appropriate level
+
+
+#### Error filtering
+---
+
+- sets the appropriate return code for some cases (e.g. NotFoundException or ProxyRateLimitedException)
+
+
+### Next steps
+---
+
+Further improvement suggestions:
+- right now each requester uses its own strategy. If the backplane would return a 429, there's no point in other instances to continue to try.
+- tests should cover all components
+- wrapping up a redis image with our deployment for easier testing
