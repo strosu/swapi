@@ -20,7 +20,8 @@ namespace Swapi
 
             builder.Services.AddRateLimiter(options =>
             {
-                options.AddPolicy<string, RateLimiterPolicy>("singleRequest");
+                options.AddPolicy<string, SingleRequestRateLimiterPolicy>(Constants.SingleRequestRateLimitAttributeName);
+                options.AddPolicy<string, AggregateRequestRateLimiterPolicy>(Constants.AggregateRequestRateLimitAttributeName);
             });
 
             // TODO - remove this
@@ -83,7 +84,6 @@ namespace Swapi
             builder.Services.AddSingleton<IConnectionMultiplexer>(x => multiplexer);
 
             builder.Services.AddSingleton<IPartitionStrategy, IPPartitionStrategy>();
-            builder.Services.AddSingleton<IPartitionGetter, SlidingWindowPartitionGetter>();
 
             RegisterAggregator(builder);
         }

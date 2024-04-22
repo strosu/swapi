@@ -9,11 +9,11 @@ namespace Swapi.Tests.Middleware
     {
         private Mock<IConnectionMultiplexer> _multiplexerMock = new Mock<IConnectionMultiplexer>();
         private Mock<IPartitionStrategy> _partitionStrategy = new Mock<IPartitionStrategy>();
-        private RateLimiterPolicy _policy;
+        private SingleRequestRateLimiterPolicy _policy;
 
         public RateLimiterPolicyTests()
         {
-            _policy = new RateLimiterPolicy(_multiplexerMock.Object, _partitionStrategy.Object, new SlidingWindowPartitionGetter());
+            _policy = new SingleRequestRateLimiterPolicy(_multiplexerMock.Object, _partitionStrategy.Object);
         }
 
         [Fact] 

@@ -6,7 +6,8 @@ namespace Swapi.Tests
     public class RateLimitingIntegrationTests: IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiPath = "/planets/1";
+        private readonly string SingleGetPath = "/planets/1";
+        private readonly string AggregateGetPath = "/planets";
 
         public RateLimitingIntegrationTests(WebApplicationFactory<Program> factory)
         {
@@ -24,7 +25,7 @@ namespace Swapi.Tests
             // Add more to verify at one is rejected
             for (var i = 0; i < 3; i++)
             {
-                requests.Add(GetResult());
+                requests.Add(GetResult(SingleGetPath));
             }
 
             await Task.WhenAll(requests);
@@ -39,9 +40,9 @@ namespace Swapi.Tests
             var forwardedFor2 = "127.0.0.2";
             var requests = new List<Task<HttpStatusCode>>
             {
-                GetResult(forwardedFor1),
-                GetResult(forwardedFor1),
-                GetResult(forwardedFor2)
+                GetResult(SingleGetPath, forwardedFor1),
+                GetResult(SingleGetPath, forwardedFor1),
+                GetResult(SingleGetPath, forwardedFor2)
             };
 
             await Task.WhenAll(requests);
@@ -50,9 +51,9 @@ namespace Swapi.Tests
             Assert.Equal(0, requests.Count(x => x.Result == HttpStatusCode.TooManyRequests));
         }
 
-        private async Task<HttpStatusCode> GetResult(string? header = null)
+        private async Task<HttpStatusCode> GetResult(string path, string? header = null)
         {
-            using var request = new HttpRequestMessage(new HttpMethod("GET"), _apiPath);
+            using var request = new HttpRequestMessage(new HttpMethod("GET"), path);
             if (header != null)
             {
                 request.Headers.Add("X-Forwarded-For", header);
