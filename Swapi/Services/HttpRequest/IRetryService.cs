@@ -4,7 +4,7 @@ namespace Swapi.Services.Http
 {
     public interface IRetryService
     {
-        Task Wait(HttpResponseMessage? result);
+        Task WaitAsync(HttpResponseMessage? result);
 
         void Reset();
 
@@ -48,7 +48,7 @@ namespace Swapi.Services.Http
             return _retryCount <= MaxRetryCount;
         }
 
-        public async Task Wait(HttpResponseMessage? result)
+        public async Task WaitAsync(HttpResponseMessage? result)
         {
             if (_retryCount > MaxRetryCount)
             {

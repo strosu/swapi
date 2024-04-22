@@ -2,6 +2,10 @@
 {
     public interface IMetadataRetrieverFactory
     {
+        /// <summary>
+        /// Enables getting multiple IMetadataRetriever instances
+        /// </summary>
+        /// <returns></returns>
         IMetadataRetriever CreateMetadataRetriever();
     }
 

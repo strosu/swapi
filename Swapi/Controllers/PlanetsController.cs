@@ -18,14 +18,14 @@ namespace Swapi.Controllers
 
         [HttpGet("planets/{planetId}")]
         [EnableRateLimiting(Constants.SingleRequestRateLimitAttributeName)]
-        public async Task<Planet> GetPlanet(int planetId)
+        public async Task<Planet> GetPlanetAsync(int planetId)
         {
             return await _metadataFinder.GetSingleMetadataAsync<SwapiPlanet>(planetId);
         }
 
         [HttpGet("planets")]
         [EnableRateLimiting(Constants.AggregateRequestRateLimitAttributeName)]
-        public async Task<IEnumerable<Planet>> GetPlanets()
+        public async Task<IEnumerable<Planet>> GetPlanetsAsync()
         {
             var swapiPlanets = await _metadataFinder.GetMetadataSetAsync<SwapiPlanet>();
             return swapiPlanets.Select(x => (Planet)x);

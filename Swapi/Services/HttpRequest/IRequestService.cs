@@ -23,7 +23,6 @@ namespace Swapi.Services.Http
         private readonly IRetryService _retryService = retryService;
         private readonly ILogger<RequestService> _logger = logger;
 
-
         public async Task<T> GetAsync<T>(string url)
         {
             _logger.LogInformation($"Retrieving ${url}");
@@ -54,7 +53,7 @@ namespace Swapi.Services.Http
                     _logger.LogError(ex.InnerException?.Message);
                 }
 
-                await _retryService.Wait(result);
+                await _retryService.WaitAsync(result);
             }
 
             var errorMessage = "Could not get the request in time, giving up.";

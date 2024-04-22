@@ -12,7 +12,7 @@ namespace Swapi.Services.HttpAggregator
 
         public async Task<IEnumerable<T>> GetMetadataSetAsync<T>()
         {
-            var pageDistribution = await Paginate<T>();
+            var pageDistribution = await PaginateAsync<T>();
             var taskList = new List<Task<IEnumerable<T>>>();
 
             foreach (var urlList in pageDistribution)
@@ -40,9 +40,9 @@ namespace Swapi.Services.HttpAggregator
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private async Task<IEnumerable<IEnumerable<string>>> Paginate<T>()
+        private async Task<IEnumerable<IEnumerable<string>>> PaginateAsync<T>()
         {
-            var pageCount = await GetNumberOfPages<T>();
+            var pageCount = await GetNumberOfPagesAsync<T>();
             var result = new List<List<string>>();
 
             // If there are less pages than the degree of parallelism, no need to spawn additional retrievers
@@ -61,7 +61,7 @@ namespace Swapi.Services.HttpAggregator
             return result;
         }
 
-        private async Task<int> GetNumberOfPages<T>()
+        private async Task<int> GetNumberOfPagesAsync<T>()
         {
             var url = MetadataConfiguration.GetEntityPage<T>(1);
             var firstPage = await _metadataRetrieverFactory

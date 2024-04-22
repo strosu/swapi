@@ -20,8 +20,8 @@ namespace Swapi
 
             builder.Services.AddRateLimiter(options =>
             {
-                options.AddPolicy<string, SingleRequestRateLimiterPolicy>(Constants.SingleRequestRateLimitAttributeName);
-                options.AddPolicy<string, AggregateRequestRateLimiterPolicy>(Constants.AggregateRequestRateLimitAttributeName);
+                options.AddPolicy<string, PointQueryRateLimiterPolicy>(Constants.SingleRequestRateLimitAttributeName);
+                options.AddPolicy<string, RangeQueryRateLimiterPolicy>(Constants.AggregateRequestRateLimitAttributeName);
             });
 
             // TODO - remove this

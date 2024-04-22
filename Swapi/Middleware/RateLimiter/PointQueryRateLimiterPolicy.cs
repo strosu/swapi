@@ -5,7 +5,12 @@ using System.Threading.RateLimiting;
 
 namespace Swapi.Middleware.RateLimiter
 {
-    public class SingleRequestRateLimiterPolicy(
+    /// <summary>
+    /// More permissive policy, for endpoints that don't consume too many resources
+    /// </summary>
+    /// <param name="connectionMultiplexer"></param>
+    /// <param name="partitionStrategy"></param>
+    public class PointQueryRateLimiterPolicy(
         IConnectionMultiplexer connectionMultiplexer,
         IPartitionStrategy partitionStrategy) : IRateLimiterPolicy<string>
     {
@@ -26,7 +31,12 @@ namespace Swapi.Middleware.RateLimiter
         }
     }
 
-    public class AggregateRequestRateLimiterPolicy(
+    /// <summary>
+    /// More restrictive policy, for endpoints that consume more resources (i.e. they might result in several queries to the backplane)
+    /// </summary>
+    /// <param name="connectionMultiplexer"></param>
+    /// <param name="partitionStrategy"></param>
+    public class RangeQueryRateLimiterPolicy(
     IConnectionMultiplexer connectionMultiplexer,
     IPartitionStrategy partitionStrategy) : IRateLimiterPolicy<string>
     {

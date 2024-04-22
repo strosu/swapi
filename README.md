@@ -43,7 +43,7 @@ The `Swapi` project contains all the logic, while `Swapi.Tests` contains a mix o
 Use `dotnet run` to start the kestrel server. This assumes you have a Redis server working on the default 6379 port. 
 User `dotnet test` to run the test suite. 
 
-### General
+### General approach
 ---
 
 Most of the time will be spent waiting for the http calls to return, so our application is I/O bound. 
@@ -65,6 +65,7 @@ For a single query, there are no options for parallelization. When getting an ag
 - if we don't use caching, we'll continuously hit this inefficiency for every request
 
 #### Approach 2: Parallelizing the pages
+---
 
 **Pros**
 
@@ -77,6 +78,7 @@ For a single query, there are no options for parallelization. When getting an ag
 - requires querying to determine the number of pages that have to be polled
 
 #### Project choice - parallelized requests
+---
 
 - to offer the most performance, I chose to parallelize the requests when possible. 
 - while this might not offer the most benefit today, it would in an actual project, where we might have significantly more pages and more frequently changing data.
@@ -110,11 +112,11 @@ The code should expose these naturally, but adding here for ease of understandin
     - returns a unique list of results for further aggregation
     - delegates the actual http request to and instance of `IRequestService`
 
-IRequestService
+- IRequestService
     - knows how to retrieve a URL and deserialize it into the requested model
     - delegates the retry policy to an instance of `IRetryService`
 
-IRetryService
+- IRetryService
     - handles everything related to retries. The current implementation does them in an exponential backoff manner, but other strategies can be easily implemented.
 
 ### Middleware
@@ -127,15 +129,17 @@ IRetryService
 
 The current implementation:
 - SingleRequestRateLimiterPolicy and AggregateRequestRateLimiterPolicy expose different rate limiting policies as `IRateLimiterPolicy` implementations
-- The partitioning algorithm is delegated to `IPartitionStrategy`
+- The partitioning algorithm is delegated to `IPartitionStrategy`. We can easily chose a different one, e.g. looking at the authorization token sent by the user (in case they are logged in).
 - each policy choses a different configuration for a SlidingWindowLimiter. The algorithm can be freely chosen here.
 - each `IRateLimiterPolicy` policy is registed with a name and applied by the controller at the appropriate level
+- the `RateLimitHeaderHelper` class attempts to add more relevant information to the response, e.g. when the user can retry (for the algorithms where this is deterministic). 
 
 
 #### Error filtering
 ---
 
 - sets the appropriate return code for some cases (e.g. NotFoundException or ProxyRateLimitedException)
+- handles the cases when our rate limiting middleware allowed the request through, but the backplane rejected it with a 429.
 
 
 ### Next steps
