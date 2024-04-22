@@ -17,16 +17,16 @@ namespace Swapi.Services.Caching
         public async Task<IEnumerable<T>> GetMetadataSetAsync<T>()
         {
             var key = GetRedisKey<T>();
-            return await GetInternal(key, _httpMetadataAggregator.GetMetadataSetAsync<T>);
+            return await GetInternalAsync(key, _httpMetadataAggregator.GetMetadataSetAsync<T>);
         }
 
         public async Task<T> GetSingleMetadataAsync<T>(int objectId)
         {
             var key = GetRedisKey<T>(objectId);
-            return await GetInternal<T>(key, () => _httpMetadataAggregator.GetSingleMetadataAsync<T>(objectId));
+            return await GetInternalAsync<T>(key, () => _httpMetadataAggregator.GetSingleMetadataAsync<T>(objectId));
         }
 
-        private async Task<T> GetInternal<T>(string key, Func<Task<T>> getDirectlyFunc)
+        private async Task<T> GetInternalAsync<T>(string key, Func<Task<T>> getDirectlyFunc)
         {
             var result = await _database.StringGetAsync(key);
 
